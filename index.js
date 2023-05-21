@@ -38,6 +38,11 @@ async function run() {
     const database = client.db("CRUD-Server");
     const productCollection = database.collection("productDetails");
 
+    app.get('/user-submit-toy-details',async(req,res)=>{
+        const cursor = productCollection.find()
+        const result = await cursor.toArray()
+        res.send(result);
+    })
 
     app.post('/user-submit-toy-details', async (req, res) => {
 
