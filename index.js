@@ -1,6 +1,6 @@
 const express = require('express')
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors')
 
 
@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   }
-});
+}); 
 
 async function run() {
   try {
@@ -39,20 +39,51 @@ async function run() {
     const productCollection = database.collection("productDetails");
 
     app.get('/user-submit-toy-details',async(req,res)=>{
-        const cursor = productCollection.find()
+        const cursor = productCollection.find() 
         const result = await cursor.toArray()
-        res.send(result);
+        res.send(result);  
     })
+
+    app.get('/user-submit-toy-details/:id', async(req, res) => {
+      const id = req.params.id;
+      console.log(id)
+      const query = {_id: new ObjectId(id)}
+      const user = await productCollection.findOne(query);
+      res.send(user);
+  })
 
     app.post('/user-submit-toy-details', async (req, res) => {
 
         const data = req.body;
         const result = await productCollection.insertOne(data);
     })
+    app.patch('/user-submit-toy-details/:id', async(req, res) =>{
+      const id = req.params.id;
+      const toy = req.body;
+      console.log(id, toy);
+      
+      const filter = {_id: new ObjectId(id)}
+      const options = {upsert: true}
+      const updatedtoy = {
+          $set: {
+            price: toy.price,
+            quantity: toy.quantity,
+              description:toy.description
+          }
+      }
+      const result =await productCollection.updateOne(filter,updatedtoy,options);
+      res.send(result);}
+    )
+    app.delete('/user-submit-toy-details/:id', async(req, res) =>{
+      const id = req.params.id;
+      console.log(' delete from database', id);
+      const query = { _id: new ObjectId(id)}
+      
+      const result = await productCollection.deleteOne(query);
+      res.send(result);
+    })
 
     
-
-
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
